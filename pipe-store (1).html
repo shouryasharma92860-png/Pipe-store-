@@ -1,0 +1,1766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pipe Store — Industrial Pipe Fittings Marketplace</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --steel: #1a1f2e;
+    --iron: #252b3b;
+    --rust: #c0392b;
+    --rust-light: #e74c3c;
+    --amber: #f39c12;
+    --chrome: #bdc3c7;
+    --silver: #ecf0f1;
+    --pipe-gray: #7f8c8d;
+    --weld: #34495e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Barlow', sans-serif;
+    background: var(--steel);
+    color: var(--silver);
+    overflow-x: hidden;
+  }
+
+  /* Noise texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.4;
+  }
+
+  /* ===== NAVBAR ===== */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(26,31,46,0.97);
+    backdrop-filter: blur(12px);
+    border-bottom: 2px solid var(--rust);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 40px;
+    height: 70px;
+  }
+
+  .nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 42px;
+    height: 42px;
+    position: relative;
+  }
+
+  .logo-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    letter-spacing: 4px;
+    color: var(--silver);
+    line-height: 1;
+  }
+
+  .logo-text span { color: var(--rust); }
+
+  .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--chrome);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .nav-links a:hover { color: var(--rust-light); }
+
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn-sell {
+    background: var(--rust);
+    color: white;
+    padding: 9px 22px;
+    border: none;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .btn-sell:hover { background: var(--rust-light); transform: scale(1.02); }
+
+  .cart-icon {
+    position: relative;
+    cursor: pointer;
+    background: var(--weld);
+    border: 1px solid #3d4f62;
+    padding: 8px 12px;
+    border-radius: 4px;
+    transition: border-color 0.2s;
+  }
+
+  .cart-icon:hover { border-color: var(--rust); }
+  .cart-icon svg { display: block; }
+
+  .cart-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--rust);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ===== HERO ===== */
+  .hero {
+    position: relative;
+    min-height: 88vh;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    padding: 80px 40px 80px 80px;
+    background: linear-gradient(135deg, #0d1117 0%, #1a1f2e 50%, #1e2535 100%);
+  }
+
+  .hero-bg-pipes {
+    position: absolute;
+    right: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 55%;
+    opacity: 0.18;
+    pointer-events: none;
+  }
+
+  /* Pipe SVG drawing decorations */
+  .pipe-deco {
+    position: absolute;
+    opacity: 0.07;
+    pointer-events: none;
+  }
+
+  .pipe-deco-1 { top: 0; left: 0; width: 300px; }
+  .pipe-deco-2 { bottom: 0; right: 200px; width: 250px; }
+
+  .hero-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(192,57,43,0.15);
+    border: 1px solid rgba(192,57,43,0.4);
+    color: var(--rust-light);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 14px;
+    margin-bottom: 24px;
+    animation: fadeInDown 0.6s ease forwards;
+  }
+
+  .hero-tag::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--rust);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .hero h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(64px, 8vw, 120px);
+    line-height: 0.9;
+    letter-spacing: 4px;
+    margin-bottom: 6px;
+    animation: fadeInUp 0.7s ease 0.1s both;
+  }
+
+  .hero h1 .accent { color: var(--rust); }
+  .hero h1 .outline {
+    -webkit-text-stroke: 2px var(--silver);
+    color: transparent;
+  }
+
+  .hero-sub {
+    font-size: 18px;
+    font-weight: 300;
+    color: var(--chrome);
+    line-height: 1.6;
+    max-width: 520px;
+    margin: 20px 0 36px;
+    animation: fadeInUp 0.7s ease 0.2s both;
+  }
+
+  .hero-buttons {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    animation: fadeInUp 0.7s ease 0.3s both;
+  }
+
+  .btn-primary {
+    background: var(--rust);
+    color: white;
+    padding: 15px 36px;
+    border: none;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover {
+    background: var(--rust-light);
+    transform: translateX(2px);
+    box-shadow: -4px 0 0 var(--amber);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--silver);
+    padding: 14px 34px;
+    border: 2px solid var(--pipe-gray);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-outline:hover { border-color: var(--rust); color: var(--rust-light); }
+
+  .hero-stats {
+    display: flex;
+    gap: 40px;
+    margin-top: 56px;
+    animation: fadeInUp 0.7s ease 0.4s both;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-left: 3px solid var(--rust);
+    padding-left: 14px;
+  }
+
+  .stat-number {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 34px;
+    color: var(--silver);
+    letter-spacing: 2px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--pipe-gray);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-14px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== TICKER ===== */
+  .ticker {
+    background: var(--rust);
+    padding: 10px 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .ticker-inner {
+    display: inline-flex;
+    gap: 0;
+    animation: ticker 28s linear infinite;
+  }
+
+  .ticker-item {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 0 40px;
+    color: rgba(255,255,255,0.9);
+  }
+
+  .ticker-item::after {
+    content: '⬡';
+    margin-left: 40px;
+    opacity: 0.5;
+  }
+
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* ===== SECTION HEADER ===== */
+  .section-header {
+    text-align: center;
+    margin-bottom: 52px;
+  }
+
+  .section-tag {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin-bottom: 12px;
+    display: block;
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(38px, 4vw, 58px);
+    letter-spacing: 3px;
+    line-height: 1;
+    color: var(--silver);
+  }
+
+  .section-line {
+    width: 60px;
+    height: 3px;
+    background: var(--rust);
+    margin: 16px auto 0;
+  }
+
+  /* ===== CATEGORIES ===== */
+  .categories {
+    padding: 80px 40px;
+    background: var(--iron);
+  }
+
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .cat-card {
+    background: var(--steel);
+    border: 1px solid #2e3649;
+    padding: 28px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cat-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--rust);
+    transform: scaleX(0);
+    transition: transform 0.3s;
+  }
+
+  .cat-card:hover {
+    border-color: var(--rust);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+  }
+
+  .cat-card:hover::before { transform: scaleX(1); }
+
+  .cat-icon {
+    font-size: 36px;
+    margin-bottom: 12px;
+    display: block;
+    filter: grayscale(0.3);
+    transition: transform 0.3s;
+  }
+
+  .cat-card:hover .cat-icon { transform: scale(1.15); }
+
+  .cat-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--silver);
+    margin-bottom: 4px;
+  }
+
+  .cat-count {
+    font-size: 12px;
+    color: var(--pipe-gray);
+  }
+
+  /* ===== PRODUCTS ===== */
+  .products {
+    padding: 80px 40px;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+
+  .products-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 36px;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .filter-tabs {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+  }
+
+  .filter-tab {
+    padding: 8px 18px;
+    background: transparent;
+    border: 1px solid #2e3649;
+    color: var(--chrome);
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .filter-tab:hover, .filter-tab.active {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: white;
+  }
+
+  .search-bar {
+    display: flex;
+    align-items: center;
+    background: var(--iron);
+    border: 1px solid #2e3649;
+    padding: 0 16px;
+    gap: 10px;
+    transition: border-color 0.2s;
+  }
+
+  .search-bar:focus-within { border-color: var(--rust); }
+
+  .search-bar input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--silver);
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    padding: 10px 0;
+    width: 220px;
+  }
+
+  .search-bar input::placeholder { color: var(--pipe-gray); }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .product-card {
+    background: var(--iron);
+    border: 1px solid #2e3649;
+    overflow: hidden;
+    transition: all 0.25s;
+    cursor: pointer;
+    animation: fadeInUp 0.5s ease both;
+  }
+
+  .product-card:hover {
+    transform: translateY(-5px);
+    border-color: #3d4f62;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+  }
+
+  .product-img {
+    height: 200px;
+    background: var(--weld);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 72px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .product-img::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 60%);
+  }
+
+  .product-badge {
+    position: absolute;
+    top: 12px;
+    left: 0;
+    background: var(--rust);
+    color: white;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 100%, 0 100%);
+  }
+
+  .product-badge.new { background: #27ae60; }
+  .product-badge.sale { background: var(--rust); }
+  .product-badge.hot { background: var(--amber); color: #1a1f2e; }
+
+  .wishlist-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(26,31,46,0.8);
+    border: 1px solid #3d4f62;
+    color: var(--chrome);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+  }
+
+  .wishlist-btn:hover { background: var(--rust); border-color: var(--rust); color: white; }
+
+  .product-body {
+    padding: 18px 20px 20px;
+  }
+
+  .product-category {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--rust-light);
+    margin-bottom: 6px;
+  }
+
+  .product-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--silver);
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  .product-spec {
+    font-size: 13px;
+    color: var(--pipe-gray);
+    margin-bottom: 14px;
+  }
+
+  .product-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .product-price {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .price-main {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 26px;
+    color: var(--silver);
+    letter-spacing: 1px;
+  }
+
+  .price-old {
+    font-size: 12px;
+    color: var(--pipe-gray);
+    text-decoration: line-through;
+  }
+
+  .add-to-cart {
+    background: var(--rust);
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    cursor: pointer;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+    transition: all 0.2s;
+  }
+
+  .add-to-cart:hover {
+    background: var(--rust-light);
+    transform: scale(1.05);
+  }
+
+  /* ===== SELL SECTION ===== */
+  .sell-section {
+    background: linear-gradient(135deg, #0d1117 0%, var(--steel) 100%);
+    padding: 80px 40px;
+    border-top: 1px solid #2e3649;
+    border-bottom: 1px solid #2e3649;
+  }
+
+  .sell-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+  }
+
+  .sell-content .section-header { text-align: left; }
+  .sell-content .section-line { margin-left: 0; }
+
+  .sell-content p {
+    font-size: 16px;
+    color: var(--chrome);
+    line-height: 1.7;
+    margin: 20px 0 32px;
+  }
+
+  .sell-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .sell-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .step-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 28px;
+    color: var(--rust);
+    line-height: 1;
+    min-width: 32px;
+  }
+
+  .step-info strong {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--silver);
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .step-info span {
+    font-size: 13px;
+    color: var(--pipe-gray);
+    line-height: 1.4;
+  }
+
+  .sell-form {
+    background: var(--iron);
+    border: 1px solid #2e3649;
+    padding: 36px;
+  }
+
+  .sell-form h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 30px;
+    letter-spacing: 3px;
+    margin-bottom: 24px;
+    color: var(--silver);
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .form-group {
+    margin-bottom: 16px;
+  }
+
+  .form-group label {
+    display: block;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--pipe-gray);
+    margin-bottom: 6px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    background: var(--steel);
+    border: 1px solid #2e3649;
+    color: var(--silver);
+    font-family: 'Barlow', sans-serif;
+    font-size: 14px;
+    padding: 11px 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+  }
+
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus { border-color: var(--rust); }
+
+  .form-group textarea { resize: vertical; height: 80px; }
+
+  .btn-submit {
+    width: 100%;
+    background: var(--rust);
+    color: white;
+    border: none;
+    padding: 14px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-top: 8px;
+  }
+
+  .btn-submit:hover { background: var(--rust-light); }
+
+  /* ===== FEATURES ===== */
+  .features {
+    padding: 70px 40px;
+    background: var(--steel);
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0;
+    max-width: 1100px;
+    margin: 0 auto;
+    border: 1px solid #2e3649;
+  }
+
+  .feature-item {
+    padding: 32px 28px;
+    border-right: 1px solid #2e3649;
+    text-align: center;
+    transition: background 0.2s;
+  }
+
+  .feature-item:last-child { border-right: none; }
+  .feature-item:hover { background: var(--iron); }
+
+  .feature-icon {
+    font-size: 32px;
+    margin-bottom: 14px;
+    display: block;
+  }
+
+  .feature-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--silver);
+    margin-bottom: 8px;
+  }
+
+  .feature-desc {
+    font-size: 13px;
+    color: var(--pipe-gray);
+    line-height: 1.5;
+  }
+
+  /* ===== TESTIMONIALS ===== */
+  .testimonials {
+    padding: 80px 40px;
+    background: var(--iron);
+  }
+
+  .testimonial-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .testimonial-card {
+    background: var(--steel);
+    border: 1px solid #2e3649;
+    border-left: 4px solid var(--rust);
+    padding: 28px;
+    transition: transform 0.2s;
+  }
+
+  .testimonial-card:hover { transform: translateY(-3px); }
+
+  .stars {
+    color: var(--amber);
+    font-size: 16px;
+    margin-bottom: 14px;
+  }
+
+  .testimonial-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--chrome);
+    margin-bottom: 18px;
+    font-style: italic;
+  }
+
+  .testimonial-author {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .author-avatar {
+    width: 42px;
+    height: 42px;
+    background: var(--weld);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    border: 2px solid var(--rust);
+  }
+
+  .author-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--silver);
+    letter-spacing: 0.5px;
+  }
+
+  .author-role {
+    font-size: 12px;
+    color: var(--pipe-gray);
+  }
+
+  /* ===== NEWSLETTER ===== */
+  .newsletter {
+    background: var(--rust);
+    padding: 60px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .newsletter::before {
+    content: 'PIPE STORE';
+    position: absolute;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 180px;
+    letter-spacing: 10px;
+    color: rgba(0,0,0,0.12);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  .newsletter h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    letter-spacing: 4px;
+    color: white;
+    margin-bottom: 8px;
+    position: relative;
+  }
+
+  .newsletter p {
+    color: rgba(255,255,255,0.8);
+    margin-bottom: 28px;
+    font-size: 16px;
+    position: relative;
+  }
+
+  .newsletter-form {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    max-width: 480px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .newsletter-form input {
+    flex: 1;
+    background: rgba(0,0,0,0.25);
+    border: 2px solid rgba(255,255,255,0.3);
+    border-right: none;
+    color: white;
+    font-family: 'Barlow', sans-serif;
+    font-size: 15px;
+    padding: 14px 20px;
+    outline: none;
+  }
+
+  .newsletter-form input::placeholder { color: rgba(255,255,255,0.5); }
+  .newsletter-form input:focus { border-color: rgba(255,255,255,0.7); }
+
+  .newsletter-form button {
+    background: white;
+    color: var(--rust);
+    border: 2px solid white;
+    padding: 14px 28px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .newsletter-form button:hover {
+    background: var(--steel);
+    border-color: var(--steel);
+    color: white;
+  }
+
+  /* ===== FOOTER ===== */
+  footer {
+    background: #0d1117;
+    padding: 60px 40px 30px;
+    border-top: 2px solid var(--rust);
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 40px;
+    max-width: 1200px;
+    margin: 0 auto 50px;
+  }
+
+  .footer-brand .logo-text {
+    font-size: 32px;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .footer-brand p {
+    font-size: 14px;
+    color: var(--pipe-gray);
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+
+  .social-links {
+    display: flex;
+    gap: 10px;
+  }
+
+  .social-link {
+    width: 36px;
+    height: 36px;
+    background: var(--weld);
+    border: 1px solid #2e3649;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    color: var(--chrome);
+  }
+
+  .social-link:hover {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: white;
+  }
+
+  .footer-col h4 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--silver);
+    margin-bottom: 18px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #2e3649;
+  }
+
+  .footer-col ul { list-style: none; }
+
+  .footer-col ul li {
+    margin-bottom: 10px;
+  }
+
+  .footer-col ul li a {
+    font-size: 14px;
+    color: var(--pipe-gray);
+    text-decoration: none;
+    transition: color 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .footer-col ul li a::before {
+    content: '›';
+    color: var(--rust);
+    font-size: 16px;
+  }
+
+  .footer-col ul li a:hover { color: var(--rust-light); }
+
+  .footer-bottom {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 24px;
+    border-top: 1px solid #2e3649;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .footer-bottom p {
+    font-size: 13px;
+    color: var(--pipe-gray);
+  }
+
+  .payment-icons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .payment-icon {
+    background: var(--weld);
+    border: 1px solid #2e3649;
+    padding: 4px 10px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--chrome);
+    text-transform: uppercase;
+  }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+  }
+
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+
+  .modal {
+    background: var(--iron);
+    border: 1px solid #2e3649;
+    border-top: 3px solid var(--rust);
+    padding: 40px;
+    max-width: 440px;
+    width: 90%;
+    transform: translateY(20px);
+    transition: transform 0.25s;
+    position: relative;
+  }
+
+  .modal-overlay.open .modal { transform: translateY(0); }
+
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
+    color: var(--pipe-gray);
+    font-size: 22px;
+    cursor: pointer;
+    transition: color 0.2s;
+    line-height: 1;
+  }
+
+  .modal-close:hover { color: var(--rust); }
+
+  .modal h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 32px;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+  }
+
+  .modal p { color: var(--pipe-gray); font-size: 14px; margin-bottom: 24px; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: var(--iron);
+    border: 1px solid #2e3649;
+    border-left: 4px solid #27ae60;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    z-index: 300;
+    transform: translateX(120%);
+    transition: transform 0.3s;
+    max-width: 320px;
+  }
+
+  .toast.show { transform: translateX(0); }
+
+  .toast-icon { font-size: 20px; }
+
+  .toast-text strong {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--silver);
+    display: block;
+  }
+
+  .toast-text span { font-size: 13px; color: var(--pipe-gray); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    .nav-links { display: none; }
+    .hero { padding: 60px 24px; min-height: auto; }
+    .hero-bg-pipes { display: none; }
+    .sell-inner { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .features-grid { grid-template-columns: 1fr 1fr; }
+    .feature-item { border-right: none; border-bottom: 1px solid #2e3649; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav>
+  <div class="nav-logo">
+    <svg class="logo-icon" viewBox="0 0 42 42" fill="none">
+      <rect x="4" y="16" width="34" height="10" rx="5" fill="#c0392b" opacity="0.9"/>
+      <rect x="0" y="18" width="8" height="6" rx="1" fill="#7f8c8d"/>
+      <rect x="34" y="18" width="8" height="6" rx="1" fill="#7f8c8d"/>
+      <circle cx="21" cy="21" r="4" fill="#ecf0f1" opacity="0.4"/>
+      <circle cx="21" cy="21" r="2" fill="#c0392b"/>
+    </svg>
+    <div class="logo-text">PIPE<span>STORE</span></div>
+  </div>
+  <ul class="nav-links">
+    <li><a href="#">Products</a></li>
+    <li><a href="#">Categories</a></li>
+    <li><a href="#">Bulk Orders</a></li>
+    <li><a href="#">Sell Here</a></li>
+    <li><a href="#">About</a></li>
+    <li><a href="#">Contact</a></li>
+  </ul>
+  <div class="nav-actions">
+    <div class="cart-icon" onclick="openModal()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#bdc3c7" stroke-width="2">
+        <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 01-8 0"/>
+      </svg>
+      <span class="cart-badge" id="cartCount">0</span>
+    </div>
+    <button class="btn-sell" onclick="document.getElementById('sellSection').scrollIntoView({behavior:'smooth'})">+ Sell Now</button>
+  </div>
+</nav>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="ticker-inner">
+    <span class="ticker-item">Free Shipping on Orders Over $500</span>
+    <span class="ticker-item">Bulk Discounts Available</span>
+    <span class="ticker-item">Industrial Grade Certified</span>
+    <span class="ticker-item">10,000+ Products in Stock</span>
+    <span class="ticker-item">Trusted by 5,000+ Contractors</span>
+    <span class="ticker-item">Fast Nationwide Delivery</span>
+    <span class="ticker-item">Free Shipping on Orders Over $500</span>
+    <span class="ticker-item">Bulk Discounts Available</span>
+    <span class="ticker-item">Industrial Grade Certified</span>
+    <span class="ticker-item">10,000+ Products in Stock</span>
+    <span class="ticker-item">Trusted by 5,000+ Contractors</span>
+    <span class="ticker-item">Fast Nationwide Delivery</span>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div>
+    <div class="hero-tag">Industrial Marketplace</div>
+    <h1>
+      THE PIPE<br>
+      <span class="accent">FITTING</span><br>
+      <span class="outline">STORE</span>
+    </h1>
+    <p class="hero-sub">
+      Buy and sell industrial pipe fittings, valves, flanges, and couplings. 
+      Trusted by contractors, plumbers, and engineers across the nation.
+    </p>
+    <div class="hero-buttons">
+      <button class="btn-primary" onclick="document.getElementById('productsSection').scrollIntoView({behavior:'smooth'})">Browse Products</button>
+      <button class="btn-outline" onclick="document.getElementById('sellSection').scrollIntoView({behavior:'smooth'})">Start Selling</button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat">
+        <span class="stat-number">12K+</span>
+        <span class="stat-label">Products Listed</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">5,400</span>
+        <span class="stat-label">Active Sellers</span>
+      </div>
+      <div class="stat">
+        <span class="stat-number">98%</span>
+        <span class="stat-label">Satisfaction Rate</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Decorative pipe SVG -->
+  <svg class="hero-bg-pipes" viewBox="0 0 600 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <rect x="100" y="200" width="400" height="60" rx="30" fill="#ecf0f1"/>
+    <rect x="80" y="210" width="60" height="40" rx="4" fill="#bdc3c7"/>
+    <rect x="460" y="210" width="60" height="40" rx="4" fill="#bdc3c7"/>
+    <circle cx="300" cy="230" r="20" fill="#7f8c8d"/>
+    <circle cx="300" cy="230" r="10" fill="#34495e"/>
+    <rect x="270" y="100" width="60" height="140" rx="30" fill="#ecf0f1"/>
+    <rect x="270" y="300" width="60" height="120" rx="30" fill="#ecf0f1"/>
+    <rect x="60" y="160" width="160" height="60" rx="30" fill="#bdc3c7"/>
+    <rect x="380" y="160" width="160" height="60" rx="30" fill="#bdc3c7"/>
+    <circle cx="180" cy="190" r="35" fill="none" stroke="#7f8c8d" stroke-width="20"/>
+    <circle cx="420" cy="190" r="35" fill="none" stroke="#7f8c8d" stroke-width="20"/>
+  </svg>
+</section>
+
+<!-- CATEGORIES -->
+<section class="categories">
+  <div style="max-width:1200px;margin:0 auto;">
+    <div class="section-header">
+      <span class="section-tag">Browse By Type</span>
+      <h2 class="section-title">Product Categories</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="cat-grid">
+      <div class="cat-card">
+        <span class="cat-icon">🔩</span>
+        <div class="cat-name">Elbows</div>
+        <div class="cat-count">842 products</div>
+      </div>
+      <div class="cat-card">
+        <span class="cat-icon">🔧</span>
+        <div class="cat-name">Flanges</div>
+        <div class="cat-count">1,240 products</div>
+      </div>
+      <div class="cat-card">
+        <span class="cat-icon">⚙️</span>
+        <div class="cat-name">Valves</div>
+        <div class="cat-count">956 products</div>
+      </div>
+      <div class="cat-card">
+        <span class="cat-icon">🔗</span>
+        <div class="cat-name">Couplings</div>
+        <div class="cat-count">630 products</div>
+      </div>
+      <div class="cat-card">
+        <span class="cat-icon">🏗️</span>
+        <div class="cat-name">Reducers</div>
+        <div class="cat-count">415 products</div>
+      </div>
+      <div class="cat-card">
+        <span class="cat-icon">🔱</span>
+        <div class="cat-name">Tees & Crosses</div>
+        <div class="cat-count">720 products</div>
+      </div>
+      <div class="cat-card">
+        <span class="cat-icon">🔒</span>
+        <div class="cat-name">Caps & Plugs</div>
+        <div class="cat-count">380 products</div>
+      </div>
+      <div class="cat-card">
+        <span class="cat-icon">📏</span>
+        <div class="cat-name">Nipples</div>
+        <div class="cat-count">562 products</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRODUCTS -->
+<section class="products" id="productsSection">
+  <div class="section-header">
+    <span class="section-tag">Marketplace</span>
+    <h2 class="section-title">Featured Products</h2>
+    <div class="section-line"></div>
+  </div>
+
+  <div class="products-toolbar">
+    <div class="filter-tabs">
+      <button class="filter-tab active" onclick="setFilter(this,'all')">All</button>
+      <button class="filter-tab" onclick="setFilter(this,'new')">New Arrivals</button>
+      <button class="filter-tab" onclick="setFilter(this,'sale')">On Sale</button>
+      <button class="filter-tab" onclick="setFilter(this,'bulk')">Bulk</button>
+    </div>
+    <div class="search-bar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7f8c8d" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input type="text" placeholder="Search products..." oninput="filterProducts(this.value)">
+    </div>
+  </div>
+
+  <div class="product-grid" id="productGrid">
+    <!-- Cards injected by JS -->
+  </div>
+</section>
+
+<!-- SELL SECTION -->
+<section class="sell-section" id="sellSection">
+  <div class="sell-inner">
+    <div class="sell-content">
+      <div class="section-header">
+        <span class="section-tag">For Sellers</span>
+        <h2 class="section-title">Sell Your<br>Pipe Fittings</h2>
+        <div class="section-line"></div>
+      </div>
+      <p>Join thousands of suppliers and contractors selling on Pipe Store. Reach industrial buyers across the country with zero listing fees on your first 50 products.</p>
+      <div class="sell-steps">
+        <div class="sell-step">
+          <span class="step-num">01</span>
+          <div class="step-info">
+            <strong>Create Your Seller Account</strong>
+            <span>Quick registration with business verification in under 24 hours.</span>
+          </div>
+        </div>
+        <div class="sell-step">
+          <span class="step-num">02</span>
+          <div class="step-info">
+            <strong>List Your Products</strong>
+            <span>Upload product specs, pricing, and availability with our easy listing tool.</span>
+          </div>
+        </div>
+        <div class="sell-step">
+          <span class="step-num">03</span>
+          <div class="step-info">
+            <strong>Receive Orders & Get Paid</strong>
+            <span>Manage orders and receive secure payments directly to your account.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sell-form">
+      <h3>List a Product</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Your Name</label>
+          <input type="text" placeholder="John Smith">
+        </div>
+        <div class="form-group">
+          <label>Company</label>
+          <input type="text" placeholder="Smith Supplies">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Product Name</label>
+        <input type="text" placeholder="e.g. 2-inch Gate Valve">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Category</label>
+          <select>
+            <option>Select Category</option>
+            <option>Elbows</option>
+            <option>Flanges</option>
+            <option>Valves</option>
+            <option>Couplings</option>
+            <option>Reducers</option>
+            <option>Tees</option>
+            <option>Caps & Plugs</option>
+            <option>Nipples</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Price (USD)</label>
+          <input type="number" placeholder="0.00">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea placeholder="Material, size, specifications, quantity available..."></textarea>
+      </div>
+      <button class="btn-submit" onclick="showToast('listing')">Submit Listing</button>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="features-grid">
+    <div class="feature-item">
+      <span class="feature-icon">🚚</span>
+      <div class="feature-title">Fast Shipping</div>
+      <div class="feature-desc">Nationwide delivery in 2–5 business days. Free on orders over $500.</div>
+    </div>
+    <div class="feature-item">
+      <span class="feature-icon">✅</span>
+      <div class="feature-title">Quality Certified</div>
+      <div class="feature-desc">All products meet ASTM, ASME, and ANSI standards for industrial use.</div>
+    </div>
+    <div class="feature-item">
+      <span class="feature-icon">💰</span>
+      <div class="feature-title">Bulk Pricing</div>
+      <div class="feature-desc">Significant discounts for wholesale and bulk purchasing orders.</div>
+    </div>
+    <div class="feature-item">
+      <span class="feature-icon">🔒</span>
+      <div class="feature-title">Secure Payments</div>
+      <div class="feature-desc">Encrypted transactions and buyer protection on every order.</div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="section-header">
+      <span class="section-tag">Reviews</span>
+      <h2 class="section-title">What Buyers Say</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="testimonial-grid">
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"Best source for industrial fittings. The bulk pricing saved us over 30% compared to our previous supplier. The quality is consistently excellent."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">👷</div>
+          <div>
+            <div class="author-name">Marcus T.</div>
+            <div class="author-role">Project Manager, TechBuild Corp</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"Incredibly fast delivery and the product specs were exactly as listed. I've ordered from Pipe Store three times now and won't go anywhere else."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">🔧</div>
+          <div>
+            <div class="author-name">Linda R.</div>
+            <div class="author-role">Master Plumber, LR Services</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★☆</div>
+        <p class="testimonial-text">"Great platform for sellers too. Listed our surplus inventory and had it sold within a week. The process was straightforward and payment was fast."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar">🏭</div>
+          <div>
+            <div class="author-name">Dave K.</div>
+            <div class="author-role">Inventory Manager, Delta Industrial</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<section class="newsletter">
+  <h2>Stay in the Loop</h2>
+  <p>Get notified about new products, bulk deals, and industry news.</p>
+  <div class="newsletter-form">
+    <input type="email" placeholder="Your email address">
+    <button onclick="showToast('newsletter')">Subscribe</button>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <span class="logo-text">PIPE<span style="color:var(--rust)">STORE</span></span>
+      <p>The leading marketplace for industrial pipe fittings. Connecting buyers and sellers across the plumbing, HVAC, and construction industries.</p>
+      <div class="social-links">
+        <a class="social-link" href="#">𝕏</a>
+        <a class="social-link" href="#">in</a>
+        <a class="social-link" href="#">fb</a>
+        <a class="social-link" href="#">yt</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Products</h4>
+      <ul>
+        <li><a href="#">Pipe Elbows</a></li>
+        <li><a href="#">Flanges</a></li>
+        <li><a href="#">Ball Valves</a></li>
+        <li><a href="#">Gate Valves</a></li>
+        <li><a href="#">Couplings</a></li>
+        <li><a href="#">Reducers</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Buyers</h4>
+      <ul>
+        <li><a href="#">How to Buy</a></li>
+        <li><a href="#">Bulk Orders</a></li>
+        <li><a href="#">Track Order</a></li>
+        <li><a href="#">Returns Policy</a></li>
+        <li><a href="#">FAQs</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Sellers</h4>
+      <ul>
+        <li><a href="#">Sell on Pipe Store</a></li>
+        <li><a href="#">Seller Guidelines</a></li>
+        <li><a href="#">Pricing & Fees</a></li>
+        <li><a href="#">Seller Support</a></li>
+        <li><a href="#">Partner Program</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2026 Pipe Store. All rights reserved. Industrial grade, every time.</p>
+    <div class="payment-icons">
+      <span class="payment-icon">Visa</span>
+      <span class="payment-icon">MC</span>
+      <span class="payment-icon">Amex</span>
+      <span class="payment-icon">PayPal</span>
+    </div>
+  </div>
+</footer>
+
+<!-- CART MODAL -->
+<div class="modal-overlay" id="cartModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3>Your Cart</h3>
+    <p>Review your selected pipe fittings before checkout.</p>
+    <div id="cartItems" style="min-height:80px;text-align:center;color:var(--pipe-gray);font-size:14px;padding:20px 0;">
+      Your cart is empty. Add products to get started.
+    </div>
+    <button class="btn-submit" onclick="showToast('checkout'); closeModal();" style="margin-top:20px;">Proceed to Checkout</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon">✅</span>
+  <div class="toast-text">
+    <strong id="toastTitle">Added to Cart</strong>
+    <span id="toastMsg">Item added successfully.</span>
+  </div>
+</div>
+
+<script>
+  // Products data
+  const products = [
+    { id:1, name:"90° Steel Elbow", cat:"Elbows", spec:"2-inch • Schedule 40 • Carbon Steel", price:"$24.99", oldPrice:"$32.00", badge:"sale", emoji:"↩️" },
+    { id:2, name:"Slip-On Flange", cat:"Flanges", spec:"3-inch • Class 150 • Stainless Steel", price:"$67.50", oldPrice:null, badge:"hot", emoji:"🔵" },
+    { id:3, name:"Gate Valve", cat:"Valves", spec:"1.5-inch • Full Port • Brass", price:"$42.00", oldPrice:null, badge:"new", emoji:"🔧" },
+    { id:4, name:"Hex Nipple", cat:"Nipples", spec:"1-inch × 3-inch • Galvanized", price:"$8.75", oldPrice:null, badge:null, emoji:"📌" },
+    { id:5, name:"Reducing Tee", cat:"Tees", spec:"2×2×1-inch • Carbon Steel", price:"$18.20", oldPrice:"$22.00", badge:"sale", emoji:"🔱" },
+    { id:6, name:"Concentric Reducer", cat:"Reducers", spec:"3×2-inch • Seamless • CS", price:"$31.00", oldPrice:null, badge:"new", emoji:"📐" },
+    { id:7, name:"Ball Valve", cat:"Valves", spec:"2-inch • Full Bore • SS316", price:"$89.99", oldPrice:"$110.00", badge:"sale", emoji:"⚙️" },
+    { id:8, name:"Pipe Cap", cat:"Caps", spec:"2-inch • Schedule 80 • PVC", price:"$5.50", oldPrice:null, badge:null, emoji:"🔒" },
+  ];
+
+  let cartCount = 0;
+
+  function renderProducts(list) {
+    const grid = document.getElementById('productGrid');
+    grid.innerHTML = list.map((p, i) => `
+      <div class="product-card" style="animation-delay:${i*0.06}s">
+        <div class="product-img">
+          <span style="font-size:64px">${p.emoji}</span>
+          ${p.badge ? `<span class="product-badge ${p.badge}">${p.badge === 'new' ? 'New' : p.badge === 'sale' ? 'Sale' : 'Hot'}</span>` : ''}
+          <button class="wishlist-btn" title="Add to Wishlist">♡</button>
+        </div>
+        <div class="product-body">
+          <div class="product-category">${p.cat}</div>
+          <div class="product-name">${p.name}</div>
+          <div class="product-spec">${p.spec}</div>
+          <div class="product-footer">
+            <div class="product-price">
+              <span class="price-main">${p.price}</span>
+              ${p.oldPrice ? `<span class="price-old">${p.oldPrice}</span>` : ''}
+            </div>
+            <button class="add-to-cart" onclick="addToCart('${p.name}')">Add ＋</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function filterProducts(query) {
+    const filtered = products.filter(p =>
+      p.name.toLowerCase().includes(query.toLowerCase()) ||
+      p.cat.toLowerCase().includes(query.toLowerCase())
+    );
+    renderProducts(filtered);
+  }
+
+  function setFilter(btn, type) {
+    document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (type === 'all') renderProducts(products);
+    else if (type === 'new') renderProducts(products.filter(p => p.badge === 'new'));
+    else if (type === 'sale') renderProducts(products.filter(p => p.badge === 'sale'));
+    else if (type === 'bulk') renderProducts(products.filter(p => parseFloat(p.price.replace('$','')) > 40));
+  }
+
+  function addToCart(name) {
+    cartCount++;
+    document.getElementById('cartCount').textContent = cartCount;
+    showToast('cart', name);
+  }
+
+  function showToast(type, name) {
+    const toast = document.getElementById('toast');
+    const title = document.getElementById('toastTitle');
+    const msg = document.getElementById('toastMsg');
+    if (type === 'cart') {
+      toast.style.borderLeftColor = '#27ae60';
+      title.textContent = 'Added to Cart';
+      msg.textContent = name + ' added successfully.';
+    } else if (type === 'newsletter') {
+      toast.style.borderLeftColor = '#c0392b';
+      title.textContent = 'Subscribed!';
+      msg.textContent = "You'll receive deal alerts soon.";
+    } else if (type === 'listing') {
+      toast.style.borderLeftColor = '#f39c12';
+      title.textContent = 'Listing Submitted';
+      msg.textContent = 'We\'ll review and publish within 24h.';
+    } else if (type === 'checkout') {
+      toast.style.borderLeftColor = '#27ae60';
+      title.textContent = 'Order Placed!';
+      msg.textContent = 'Thank you for your purchase.';
+    }
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  function openModal() {
+    document.getElementById('cartModal').classList.add('open');
+    const items = document.getElementById('cartItems');
+    if (cartCount > 0) {
+      items.innerHTML = `<p style="color:var(--silver);text-align:left;font-size:15px;">${cartCount} item(s) in cart.<br><br><span style="color:var(--pipe-gray);font-size:13px;">View full cart details after checkout.</span></p>`;
+    }
+  }
+
+  function closeModal() {
+    document.getElementById('cartModal').classList.remove('open');
+  }
+
+  document.getElementById('cartModal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  // Init
+  renderProducts(products);
+</script>
+</body>
+</html>
